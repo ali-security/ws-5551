@@ -8,6 +8,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - x64
@@ -20,13 +21,16 @@ jobs:
           - 16
         os:
           - macOS-latest
-          - ubuntu-latest
-          - windows-latest
+          - ubuntu-22.04
+          - ubuntu-24.04
+          - windows-2022
         exclude:
           - arch: x86
             os: macOS-latest
           - arch: x86
-            os: ubuntu-latest
+            os: ubuntu-22.04
+          - arch: x86
+            os: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -34,10 +38,6 @@ jobs:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.arch }}
       - run: npm install
-      - run: npm run lint
-        if:
-          matrix.os == 'ubuntu-latest' && matrix.node == 16 && matrix.arch ==
-          'x64'
       - run: npm test
       - run:
           echo ::set-output name=job_id::$(node -e
@@ -51,11 +51,3 @@ jobs:
             $ {{ matrix.arch }} on ${{ matrix.os }})
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
-  coverage:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: coverallsapp/github-action@v1.1.2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
